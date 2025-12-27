@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <title>Galactic Control – Verwaltung</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        :root {
+            --bg: #050814;
+            --bg-alt: #0d1020;
+            --bg-panel: #141831;
+
+            /* wird pro Team dynamisch gesetzt */
+            --accent: #4caf50;
+            --accent-soft: rgba(76, 175, 80, 0.1);
+            --accent2: #03a9f4;
+
+            --text: #ffffff;
+            --text-muted: #a8b0d4;
+            --border-soft: rgba(255, 255, 255, 0.06);
+            --danger: #ff5252;
+            --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.55);
+            --radius-lg: 18px;
+            --transition-fast: 0.18s ease-out;
+            --transition-med: 0.26s ease;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #232a5a 0, #050814 45%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            padding: 20px;
+        }
+
+        main.app-shell {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            background: linear-gradient(135deg, #050814 0, #090c18 40%, #050814 100%);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        aside.sidebar {
+            background: radial-gradient(circle at top left, #19204a 0, #050814 55%);
+            padding: 22px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-right: 1px solid var(--border-soft);
+        }
+
+        header.brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        span.brand-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: conic-gradient(from 155deg, var(--accent), var(--accent2), #8bc34a, var(--accent));
+            box-shadow: 0 0 18px rgba(3, 169, 244, 0.7);
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        section.brand-text {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        span.brand-title { font-weight: 700; }
+        span.brand-subtitle { font-size: 0.65rem; opacity: 0.65; }
+
+        p.sidebar-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--text-muted);
+            margin: 0 0 6px 0;
+        }
+
+        ul.nav-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        li.nav-item { position: relative; }
+
+        button.nav-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 10px;
+            background: transparent;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background var(--transition-fast),
+            border-color var(--transition-fast),
+            color var(--transition-fast),
+            transform var(--transition-fast);
+            text-align: left;
+        }
+
+        button.nav-btn:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.05);
+            transform: translateX(2px);
+        }
+
+        button.nav-btn.active {
+            background: linear-gradient(135deg, var(--accent-soft), transparent);
+            border-color: var(--accent);
+            color: var(--text);
+            box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.25);
+        }
+
+        span.nav-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: rgba(168, 176, 212, 0.35);
+            flex-shrink: 0;
+            display: inline-block;
+        }
+
+        button.nav-btn.active span.nav-dot {
+            background: radial-gradient(circle, var(--accent2) 0, var(--accent) 45%);
+            box-shadow: 0 0 12px rgba(3, 169, 244, 0.7);
+        }
+
+        span.nav-label-main { font-weight: 500; display: block; }
+        span.nav-label-sub { font-size: 0.65rem; opacity: 0.65; display: block; }
+
+        footer.sidebar-footer {
+            margin-top: auto;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-soft);
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        span.status-pill {
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(76, 175, 80, 0.7);
+            font-size: 0.65rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        span.status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: radial-gradient(circle, #8bc34a 0, var(--accent) 45%);
+            box-shadow: 0 0 10px rgba(139, 195, 74, 0.9);
+            display: inline-block;
+        }
+
+        /* Main area */
+        section.main {
+            padding: 22px 22px 22px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        header.top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        section.top-bar-left h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        section.top-bar-left p {
+            margin: 4px 0 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        section.top-bar-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        span.badge {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border-soft);
+            background: rgba(255, 255, 255, 0.02);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        span.badge-accent {
+            border-color: rgba(3, 169, 244, 0.6);
+            background: radial-gradient(circle at top left, #1b3952 0, transparent 55%);
+        }
+
+        span.badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: var(--accent2);
+            display: inline-block;
+        }
+
+        button.top-btn {
+            border: 1px solid var(--border-soft);
+            background: rgba(255,255,255,0.02);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        button.top-btn:hover { border-color: rgba(255,255,255,0.12); }
+
+        /* Window container */
+        section.window-container {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            display: grid;
+        }
+
+        section.window {
+            background: radial-gradient(circle at top left, #1a2145 0, #090c18 55%);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-soft);
+            padding: 18px 18px 20px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            animation: fadeIn var(--transition-med);
+        }
+
+        section.window.active { display: flex; }
+
+        header.window-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        span.window-title {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            opacity: 0.9;
+        }
+
+        section.window-meta {
+            display: flex;
+            gap: 8px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        section.window-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+            gap: 16px;
+            min-height: 0;
+        }
+
+        /* Speziell: linkes Panel breiter */
+        section.window-body-system-cluster {
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        }
+
+        article.panel {
+            background: rgba(5, 8, 20, 0.65);
+            border-radius: 16px;
+            border: 1px solid var(--border-soft);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        article.panel::before {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            opacity: 0.13;
+            background: radial-gradient(circle at top right, var(--accent2) 0, transparent 45%);
+            pointer-events: none;
+        }
+
+        header.panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+        }
+
+        span.panel-title-strong {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        section.panel-body {
+            font-size: 0.86rem;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 1;
+        }
+
+        section.placeholder { padding: 8px 0; line-height: 1.5; }
+        section.placeholder strong { color: var(--accent2); font-weight: 500; }
+
+        p.hint { font-size: 0.78rem; margin-top: 4px; opacity: 0.85; }
+
+        section.metric-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-top: 4px;
+            gap: 12px;
+        }
+
+        span.metric-label { color: var(--text-muted); }
+        span.metric-value { font-weight: 500; }
+        span.metric-value.ok { color: var(--accent); }
+        span.metric-value.warn { color: var(--danger); }
+
+        section.graph-bar {
+            margin-top: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        span.graph-bar-fill {
+            height: 100%;
+            width: 55%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            display: block;
+        }
+
+        /* Tabellen-Styling */
+        table.resource-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            font-size: 0.8rem;
+        }
+
+        table.resource-table thead {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        table.resource-table th,
+        table.resource-table td {
+            padding: 6px 4px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: top;
+        }
+
+        table.resource-table th:nth-child(1),
+        table.resource-table td:nth-child(1) {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        table.resource-table td:nth-child(2) { color: var(--accent2); font-weight: 500; }
+
+        table.resource-table td.status-good { color: var(--accent); }
+        table.resource-table td.status-low { color: var(--danger); }
+
+        /* Auth Overlay */
+        section.auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top, rgba(35,42,90,0.75) 0, rgba(5,8,20,0.92) 55%);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 9999;
+        }
+
+        section.auth-overlay.active { display: flex; }
+
+        article.auth-card {
+            width: 100%;
+            max-width: 520px;
+            background: rgba(10, 12, 26, 0.88);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.65);
+            padding: 16px 16px 14px;
+        }
+
+        header.auth-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        header.auth-head h2 {
+            margin: 0;
+            font-size: 1.05rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        p.auth-sub {
+            margin: 0 0 12px 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0 12px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            border: 1px solid var(--border-soft);
+            background: rgba(255,255,255,0.02);
+            color: var(--text);
+            padding: 8px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 0.7rem;
+        }
+        .auth-tab.active {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0.02));
+        }
+
+        .auth-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        label.auth-label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+        }
+
+        input.auth-input, select.auth-input {
+            padding: 10px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.25);
+            color: var(--text);
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        input.auth-input:focus, select.auth-input:focus {
+            border-color: rgba(3,169,244,0.55);
+            box-shadow: 0 0 0 3px rgba(3,169,244,0.12);
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        button.auth-btn {
+            border: 1px solid var(--border-soft);
+            background: rgba(255,255,255,0.02);
+            color: var(--text);
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        button.auth-btn.primary {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0.02));
+        }
+        button.auth-btn:hover { border-color: rgba(255,255,255,0.16); }
+
+        p.auth-msg {
+            margin: 10px 0 0;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+
+        @media (max-width: 900px) {
+            main.app-shell { grid-template-columns: 220px minmax(0, 1fr); }
+            section.window-body, section.window-body-system-cluster { grid-template-columns: minmax(0, 1fr); }
+        }
+
+        @media (max-width: 720px) {
+            body { padding: 10px; }
+            main.app-shell { grid-template-columns: minmax(0, 1fr); }
+            aside.sidebar { border-right: none; border-bottom: 1px solid var(--border-soft); }
+            section.main { padding: 18px; }
+            .auth-grid { grid-template-columns: 1fr; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+<!-- AUTH OVERLAY -->
+<section class="auth-overlay" id="authOverlay">
+    <article class="auth-card">
+        <header class="auth-head">
+            <h2>Galactic Control</h2>
+            <span class="badge badge-accent"><span class="badge-dot"></span> Zugriff</span>
+        </header>
+
+        <p class="auth-sub">
+            Melde dich an oder registriere dich. Danach wirst du einem <strong>Team</strong> zugeordnet
+            (Rot, Grün, Gelb, Weiß, Schwarz, Blau) und dein Dashboard passt sich an.
+        </p>
+
+        <section class="auth-tabs">
+            <button class="auth-tab active" id="tabLogin">Login</button>
+            <button class="auth-tab" id="tabRegister">Registrieren</button>
+        </section>
+
+        <!-- LOGIN -->
+        <section id="panelLogin">
+            <section class="auth-grid">
+                <label class="auth-label">
+                    Benutzername
+                    <input class="auth-input" id="loginUser" placeholder="z.B. Louis" autocomplete="username" />
+                </label>
+                <label class="auth-label">
+                    Passwort
+                    <input class="auth-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+                </label>
+            </section>
+
+            <section class="auth-actions">
+                <button class="auth-btn" id="btnDemo">Demo-Login</button>
+                <button class="auth-btn primary" id="btnLogin">Einloggen</button>
+            </section>
+            <p class="auth-msg" id="loginMsg"></p>
+        </section>
+
+        <!-- REGISTER -->
+        <section id="panelRegister" style="display:none;">
+            <section class="auth-grid">
+                <label class="auth-label">
+                    Benutzername
+                    <input class="auth-input" id="regUser" placeholder="z.B. PlayerOne" autocomplete="username" />
+                </label>
+                <label class="auth-label">
+                    Passwort
+                    <input class="auth-input" id="regPass" type="password" placeholder="mind. 4 Zeichen" autocomplete="new-password" />
+                </label>
+                <label class="auth-label">
+                    Team
+                    <select class="auth-input" id="regTeam">
+                        <option value="Rot">Team Rot</option>
+                        <option value="Grün">Team Grün</option>
+                        <option value="Gelb">Team Gelb</option>
+                        <option value="Weiß">Team Weiß</option>
+                        <option value="Schwarz">Team Schwarz</option>
+                        <option value="Blau">Team Blau</option>
+                    </select>
+                </label>
+                <label class="auth-label">
+                    Anzeige-Name (optional)
+                    <input class="auth-input" id="regDisplay" placeholder="z.B. Commander" />
+                </label>
+            </section>
+
+            <section class="auth-actions">
+                <button class="auth-btn" id="btnBackToLogin">Zurück</button>
+                <button class="auth-btn primary" id="btnRegister">Account erstellen</button>
+            </section>
+            <p class="auth-msg" id="regMsg"></p>
+        </section>
+    </article>
+</section>
+
+<main class="app-shell">
+    <aside class="sidebar">
+        <header class="brand">
+            <span class="brand-logo"></span>
+            <section class="brand-text">
+                <span class="brand-title">Galactic Control</span>
+                <span class="brand-subtitle">Verwaltung & Teams</span>
+            </section>
+        </header>
+
+        <section>
+            <p class="sidebar-section-title">Verwaltung</p>
+            <nav>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <button class="nav-btn active" data-target="overview">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">Übersicht</span>
+                                <span class="nav-label-sub">Team-Status & Kennzahlen</span>
+                            </section>
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="wirtschaft">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">Wirtschaft</span>
+                                <span class="nav-label-sub">Produktion, Import, Konsum</span>
+                            </section>
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="kosten">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">Kosten</span>
+                                <span class="nav-label-sub">Unterhalt & Ausgaben</span>
+                            </section>
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="forschung">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">Forschung</span>
+                                <span class="nav-label-sub">Tech-Stand & Upgrades</span>
+                            </section>
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="politik">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">Politischer Einfluss</span>
+                                <span class="nav-label-sub">Diplomatie & Macht</span>
+                            </section>
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="schiffssystem">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">Schiffssystem</span>
+                                <span class="nav-label-sub">Flotte & Module</span>
+                            </section>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </section>
+
+        <section>
+            <p class="sidebar-section-title">System & Planeten</p>
+            <nav>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="system-cluster">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">System & Cluster</span>
+                                <span class="nav-label-sub">Übersicht & Ressourcen</span>
+                            </section>
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="planeten">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">Planeten</span>
+                                <span class="nav-label-sub">Blau, Gelb, Grün, Rot</span>
+                            </section>
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="handelsmarkt">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">Handelsmarkt</span>
+                                <span class="nav-label-sub">Angebote & Gesuche</span>
+                            </section>
+                        </button>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="nav-btn" data-target="system-ranking">
+                            <span class="nav-dot"></span>
+                            <section>
+                                <span class="nav-label-main">System Ranking</span>
+                                <span class="nav-label-sub">Platzierungen & Stats</span>
+                            </section>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </section>
+
+        <footer class="sidebar-footer">
+        <span class="status-pill">
+          <span class="status-dot"></span>
+          Online
+        </span>
+            <span id="footerTeam">Team: –</span>
+            <span id="footerUser">User: –</span>
+        </footer>
+    </aside>
+
+    <section class="main">
+        <header class="top-bar">
+            <section class="top-bar-left">
+                <h1>Verwaltungs-Dashboard</h1>
+                <p id="topSubtitle">Melde dich an, um dein Team-Dashboard zu sehen.</p>
+            </section>
+
+            <section class="top-bar-badges">
+          <span class="badge">
+            Team: <strong id="badgeTeam">–</strong>
+          </span>
+                <span class="badge badge-accent">
+            <span class="badge-dot"></span> Status: <strong id="badgeStatus">Stabil</strong>
+          </span>
+                <button class="top-btn" id="btnLogout">Logout</button>
+            </section>
+        </header>
+
+        <section class="window-container">
+            <!-- OVERVIEW -->
+            <section class="window active" id="window-overview">
+                <header class="window-header">
+                    <span class="window-title">Übersicht</span>
+                    <section class="window-meta">
+                        <span>Fenster: Übersicht</span>
+                        <span id="metaTeam">Team: –</span>
+                    </section>
+                </header>
+
+                <section class="window-body">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Team-Zusammenfassung</span>
+                            <span id="overviewId">ID: –</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                <strong>Excel-Struktur</strong> übernommen: Wirtschaft / Kosten / Forschung / Politischer Einfluss /
+                                Schiffssystem / System & Cluster / Planeten (Blau, Gelb, Grün, Rot).
+                            </section>
+                            <section class="metric-row">
+                                <span class="metric-label">Aktiver Nutzer</span>
+                                <span class="metric-value ok" id="overviewUser">–</span>
+                            </section>
+                            <section class="metric-row">
+                                <span class="metric-label">Team</span>
+                                <span class="metric-value ok" id="overviewTeam">–</span>
+                            </section>
+                            <section class="graph-bar">
+                                <span class="graph-bar-fill" id="overviewBar"></span>
+                            </section>
+                            <p class="hint">
+                                Tipp: Über “System & Cluster” siehst du Ressourcenwerte aus deiner Excel (Team-Summen).
+                            </p>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Aktionen</span>
+                            <span>Session</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                <ul>
+                                    <li>UI wechselt automatisch je nach <strong>Team</strong> (Accent-Farbe).</li>
+                                    <li>Login/Registrierung speichert User lokal (Demo-Prototyp).</li>
+                                    <li>Später: echte DB/Backend möglich.</li>
+                                </ul>
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+
+            <!-- WIRTSCHAFT -->
+            <section class="window" id="window-wirtschaft">
+                <header class="window-header">
+                    <span class="window-title">Wirtschaft</span>
+                    <section class="window-meta">
+                        <span>Fenster: Wirtschaft</span>
+                        <span>Modus: Übersicht</span>
+                    </section>
+                </header>
+
+                <section class="window-body">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Ressourcen-Logik</span>
+                            <span>Excel-Nah</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                In deiner Excel ist die Ressourcen-Logik pro Ressource typischerweise:
+                                <br><strong>Ak</strong> (aktueller Bestand), <strong>Max</strong>,
+                                <strong>Brutto</strong> (Produktion), <strong>Imp.</strong> (Import),
+                                <strong>Kon.</strong> (Konsum/Verbrauch), <strong>Verlust</strong>.
+                            </section>
+                            <p class="hint">
+                                Die Tabelle im “System & Cluster”-Fenster rechnet daraus:
+                                <strong>Produktion = Brutto + Import</strong>,
+                                <strong>Verbrauch = Konsum + Verlust</strong>,
+                                <strong>Einkommen = Produktion - Verbrauch</strong>.
+                            </p>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Wirtschafts-Kontrollen</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Später: Buttons wie „Steuern anpassen“, „Handelsroute eröffnen“, „Import erhöhen“.
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+
+            <!-- KOSTEN -->
+            <section class="window" id="window-kosten">
+                <header class="window-header">
+                    <span class="window-title">Kosten</span>
+                    <section class="window-meta">
+                        <span>Fenster: Kosten</span>
+                        <span>Modus: Unterhalt</span>
+                    </section>
+                </header>
+
+                <section class="window-body">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Kosten-Übersicht</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Dieses Fenster ist passend zum Excel-Sheet <strong>“Kosten”</strong>.
+                                <br>Wenn du mir sagst, welche Tabellenbereiche du exakt anzeigen willst (Zeilen/Spalten),
+                                baue ich dir hier die echten Tabellen 1:1 rein.
+                            </section>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Aktionen</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Später: „Ausgabe sperren“, „Budget erhöhen“, „Unterhalt reduzieren“.
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+
+            <!-- FORSCHUNG -->
+            <section class="window" id="window-forschung">
+                <header class="window-header">
+                    <span class="window-title">Forschung</span>
+                    <section class="window-meta">
+                        <span>Fenster: Forschung</span>
+                        <span>Modus: Tech</span>
+                    </section>
+                </header>
+
+                <section class="window-body">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Forschungsstand</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Passend zum Excel-Sheet <strong>“Forschung”</strong>.
+                                <br>Du kannst hier Tech-Tier, Boni, laufende Projekte, Abschlusszeiten anzeigen.
+                            </section>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Upgrades</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Später: Buttons “Projekt starten”, “Forschung beschleunigen”, “Labor ausbauen”.
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+
+            <!-- POLITIK -->
+            <section class="window" id="window-politik">
+                <header class="window-header">
+                    <span class="window-title">Politischer Einfluss</span>
+                    <section class="window-meta">
+                        <span>Fenster: Politik</span>
+                        <span>Modus: Einfluss</span>
+                    </section>
+                </header>
+
+                <section class="window-body">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Einfluss-Übersicht</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Passend zum Excel-Sheet <strong>“Politischer IEnfluss”</strong> (Schreibweise wie in deiner Datei).
+                                <br>Hier kannst du Fraktionen, Senat, Kontrolle, Propaganda, etc. abbilden.
+                            </section>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Aktionen</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Später: “Einfluss kaufen”, “Abkommen”, “Druck ausüben”.
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+
+            <!-- SCHIFFSSYSTEM -->
+            <section class="window" id="window-schiffssystem">
+                <header class="window-header">
+                    <span class="window-title">Schiffssystem</span>
+                    <section class="window-meta">
+                        <span>Fenster: Schiffssystem</span>
+                        <span>Modus: Flotte</span>
+                    </section>
+                </header>
+
+                <section class="window-body">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Flotte & Module</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Passend zum Excel-Sheet <strong>“Schiffssystem”</strong>.
+                                <br>Hier kannst du Schiffstypen, Slots, Boni, Upkeep und Status anzeigen.
+                            </section>
+                            <section class="metric-row">
+                                <span class="metric-label">Bereitschaft</span>
+                                <span class="metric-value ok">78%</span>
+                            </section>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Einsatz-Panel</span>
+                            <span>Aktionen</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Später: „Flotte entsenden“, „Verstärken“, „Manöver“.
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+
+            <!-- SYSTEM & CLUSTER -->
+            <section class="window" id="window-system-cluster">
+                <header class="window-header">
+                    <span class="window-title">System & Cluster</span>
+                    <section class="window-meta">
+                        <span>Fenster: System & Cluster</span>
+                        <span>Modus: Ressourcen</span>
+                    </section>
+                </header>
+
+                <section class="window-body window-body-system-cluster">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Systemressourcen (Team-Summe)</span>
+                            <span id="systemSector">Excel: Wirtschaft → Team-Zeile</span>
+                        </header>
+
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Diese Tabelle nutzt die Team-Summen aus deiner Excel (Sheet <strong>Wirtschaft</strong> – Gesamtzeilen pro Team).
+                            </section>
+
+                            <table class="resource-table">
+                                <thead>
+                                <tr>
+                                    <th>Ressource</th>
+                                    <th>Ak</th>
+                                    <th>Max</th>
+                                    <th>Produktion</th>
+                                    <th>Verbrauch</th>
+                                    <th>Einkommen</th>
+                                    <th>Status</th>
+                                </tr>
+                                </thead>
+                                <tbody id="resourceTbody">
+                                <!-- wird per JS gerendert -->
+                                </tbody>
+                            </table>
+
+                            <p class="hint">
+                                Formel (Excel-nah): Produktion = Brutto + Import | Verbrauch = Konsum + Verlust | Einkommen = Produktion − Verbrauch
+                            </p>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Cluster-Info</span>
+                            <span>Meta</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Hier kannst du später Werte aus <strong>“System und Cluster übersicht”</strong> anzeigen:
+                                Clustername, Heimatsystem, Vergleichswerte, Bonus-Effekte, etc.
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+
+            <!-- PLANETEN -->
+            <section class="window" id="window-planeten">
+                <header class="window-header">
+                    <span class="window-title">Planeten</span>
+                    <section class="window-meta">
+                        <span>Fenster: Planeten</span>
+                        <span>Excel: Planeten Blau/Gelb/Grün/Rot</span>
+                    </section>
+                </header>
+
+                <section class="window-body">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Planeten-Module</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Dieses Fenster ist für die Planeten-Sheets:
+                                <strong>Planeten Blau</strong>, <strong>Planeten Gelb</strong>, <strong>Planeten Grün</strong>, <strong>Planeten Rot</strong>.
+                                <br><br>
+                                Wenn du willst, mache ich dir hier Tabs (Blau/Gelb/Grün/Rot) und rendere exakt die Tabellenbereiche aus den Sheets.
+                            </section>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Hinweis</span>
+                            <span>Ausbau</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Sag mir einfach: <strong>Welche Spalten/Zeilen</strong> du pro Planeten anzeigen willst
+                                (oder Screenshot von dem Bereich) → dann baue ich es 1:1.
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+
+            <!-- HANDELSMARKT -->
+            <section class="window" id="window-handelsmarkt">
+                <header class="window-header">
+                    <span class="window-title">Handelsmarkt</span>
+                    <section class="window-meta">
+                        <span>Fenster: Handelsmarkt</span>
+                        <span>Modus: Handel</span>
+                    </section>
+                </header>
+
+                <section class="window-body">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Angebote & Gesuche</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <p class="placeholder">
+                                Hier könntest du Handelsangebote und Gesuche listen.
+                            </p>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Neues Handelangebot</span>
+                            <span>Konzept</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Später: Formulare zum Erstellen von Angeboten.
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+
+            <!-- SYSTEM RANKING -->
+            <section class="window" id="window-system-ranking">
+                <header class="window-header">
+                    <span class="window-title">System Ranking</span>
+                    <section class="window-meta">
+                        <span>Fenster: System Ranking</span>
+                        <span>Modus: Statistik</span>
+                    </section>
+                </header>
+
+                <section class="window-body">
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span class="panel-title-strong">Rangliste</span>
+                            <span>Top</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Später: Ranking-Tabelle mit deinen Systemen.
+                            </section>
+                        </section>
+                    </article>
+
+                    <article class="panel">
+                        <header class="panel-header">
+                            <span>Statistik-Panel</span>
+                            <span>Placeholder</span>
+                        </header>
+                        <section class="panel-body">
+                            <section class="placeholder">
+                                Ideal für kleine Grafiken / Kennzahlen.
+                            </section>
+                        </section>
+                    </article>
+                </section>
+            </section>
+        </section>
+    </section>
+</main>
+
+<script>
+    /************************************************************
+     DEMO-DATEN (aus deiner Excel gelesen – Team-Summenblock)
+         Ressourcen: Koron, Treibstoff, Sondaris Kristalle, Trankal Öl
+
+      Werte-Format je Ressource:
+      [Ak, Max, Brutto, Import, Konsum, Verlust]
+     ************************************************************/
+    const TEAM_EXCEL_SUMMARY = {
+        "Blau": {
+            "Koron": [33, 167, 330, 49.5, 198, 82.5],
+            "Treibstoff": [25, 210, 290, 43.5, 174, 72.5],
+            "Sondaris Kristalle": [0, 0, 0, 0, 0, 0],
+            "Trankal Öl": [0, 50, 0, 0, 0, 0],
+        },
+        "Gelb": {
+            "Koron": [25, 137, 250, 37.5, 150, 62.5],
+            "Treibstoff": [14, 116, 140, 21, 84, 35],
+            "Sondaris Kristalle": [0, 25, 0, 0, 0, 0],
+            "Trankal Öl": [0, 25, 0, 0, 0, 0],
+        },
+        "Grün": {
+            "Koron": [27, 173, 270, 40.5, 162, 67.5],
+            "Treibstoff": [24, 238, 240, 36, 144, 60],
+            "Sondaris Kristalle": [0, 25, 0, 0, 0, 0],
+            "Trankal Öl": [0, 25, 0, 0, 0, 0],
+        },
+        "Rot": {
+            "Koron": [31, 227, 310, 46.5, 186, 77.5],
+            "Treibstoff": [16, 129, 160, 24, 96, 40],
+            "Sondaris Kristalle": [0, 50, 0, 0, 0, 0],
+            "Trankal Öl": [0, 0, 0, 0, 0, 0],
+        },
+        // Teams existieren für Login, aber Excel-Summenblock hatte sie hier nicht:
+        "Weiß": {},
+        "Schwarz": {}
+    };
+
+    /************************************************************
+     TEAM THEME (Accent Farben)
+     ************************************************************/
+    const TEAM_THEME = {
+        "Rot":    { accent: "#ff5252", accent2: "#ff9800" },
+        "Grün":   { accent: "#4caf50", accent2: "#03a9f4" },
+        "Gelb":   { accent: "#ffeb3b", accent2: "#ff9800" },
+        "Weiß":   { accent: "#e0e0e0", accent2: "#03a9f4" },
+        "Schwarz":{ accent: "#111111", accent2: "#03a9f4" },
+        "Blau":   { accent: "#2196f3", accent2: "#00bcd4" },
+    };
+
+    function setTeamTheme(team) {
+        const t = TEAM_THEME[team] || TEAM_THEME["Grün"];
+        const root = document.documentElement.style;
+
+        root.setProperty("--accent", t.accent);
+        root.setProperty("--accent2", t.accent2);
+
+        // accent-soft automatisch aus accent ableiten (quick + clean):
+        root.setProperty("--accent-soft", hexToRgba(t.accent, 0.10));
+    }
+
+    function hexToRgba(hex, a) {
+        const h = hex.replace("#","").trim();
+        const full = h.length === 3 ? h.split("").map(x => x + x).join("") : h;
+        const r = parseInt(full.substring(0,2), 16);
+        const g = parseInt(full.substring(2,4), 16);
+        const b = parseInt(full.substring(4,6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${a})`;
+    }
+
+    /************************************************************
+     AUTH (Demo-Prototyp mit localStorage)
+     ************************************************************/
+    const authOverlay = document.getElementById("authOverlay");
+    const tabLogin = document.getElementById("tabLogin");
+    const tabRegister = document.getElementById("tabRegister");
+    const panelLogin = document.getElementById("panelLogin");
+    const panelRegister = document.getElementById("panelRegister");
+
+    const loginUser = document.getElementById("loginUser");
+    const loginPass = document.getElementById("loginPass");
+    const loginMsg = document.getElementById("loginMsg");
+
+    const regUser = document.getElementById("regUser");
+    const regPass = document.getElementById("regPass");
+    const regTeam = document.getElementById("regTeam");
+    const regDisplay = document.getElementById("regDisplay");
+    const regMsg = document.getElementById("regMsg");
+
+    const btnLogin = document.getElementById("btnLogin");
+    const btnDemo = document.getElementById("btnDemo");
+    const btnRegister = document.getElementById("btnRegister");
+    const btnBackToLogin = document.getElementById("btnBackToLogin");
+    const btnLogout = document.getElementById("btnLogout");
+
+    function getUsers() {
+        try { return JSON.parse(localStorage.getItem("gc_users") || "{}"); }
+        catch { return {}; }
+    }
+    function setUsers(obj) {
+        localStorage.setItem("gc_users", JSON.stringify(obj));
+    }
+    function setSession(session) {
+        localStorage.setItem("gc_session", JSON.stringify(session));
+    }
+    function getSession() {
+        try { return JSON.parse(localStorage.getItem("gc_session") || "null"); }
+        catch { return null; }
+    }
+    function clearSession() {
+        localStorage.removeItem("gc_session");
+    }
+
+    function showAuth() { authOverlay.classList.add("active"); }
+    function hideAuth() { authOverlay.classList.remove("active"); }
+
+    function setAuthTab(mode) {
+        const isLogin = mode === "login";
+        tabLogin.classList.toggle("active", isLogin);
+        tabRegister.classList.toggle("active", !isLogin);
+        panelLogin.style.display = isLogin ? "block" : "none";
+        panelRegister.style.display = isLogin ? "none" : "block";
+        loginMsg.textContent = "";
+        regMsg.textContent = "";
+    }
+
+    tabLogin.addEventListener("click", () => setAuthTab("login"));
+    tabRegister.addEventListener("click", () => setAuthTab("register"));
+    btnBackToLogin.addEventListener("click", () => setAuthTab("login"));
+
+    btnRegister.addEventListener("click", () => {
+        const u = (regUser.value || "").trim();
+        const p = (regPass.value || "").trim();
+        const team = regTeam.value;
+        const display = (regDisplay.value || "").trim() || u;
+
+        if (u.length < 3) return (regMsg.textContent = "Benutzername muss mindestens 3 Zeichen haben.");
+        if (p.length < 4) return (regMsg.textContent = "Passwort muss mindestens 4 Zeichen haben.");
+
+        const users = getUsers();
+        if (users[u]) return (regMsg.textContent = "Dieser Benutzername existiert bereits.");
+
+        users[u] = { pass: p, team, display };
+        setUsers(users);
+
+        setSession({ user: u, team, display });
+        applySession();
+        hideAuth();
+    });
+
+    btnLogin.addEventListener("click", () => {
+        const u = (loginUser.value || "").trim();
+        const p = (loginPass.value || "").trim();
+        const users = getUsers();
+
+        if (!users[u]) return (loginMsg.textContent = "User nicht gefunden. Bitte registrieren.");
+        if (users[u].pass !== p) return (loginMsg.textContent = "Passwort falsch.");
+
+        setSession({ user: u, team: users[u].team, display: users[u].display || u });
+        applySession();
+        hideAuth();
+    });
+
+    btnDemo.addEventListener("click", () => {
+        // erzeugt einen Demo-User, falls nicht da
+        const users = getUsers();
+        if (!users["demo"]) {
+            users["demo"] = { pass: "demo", team: "Blau", display: "Demo Commander" };
+            setUsers(users);
+        }
+        setSession({ user: "demo", team: users["demo"].team, display: users["demo"].display });
+        applySession();
+        hideAuth();
+    });
+
+    btnLogout.addEventListener("click", () => {
+        clearSession();
+        showAuth();
+        document.getElementById("topSubtitle").textContent = "Melde dich an, um dein Team-Dashboard zu sehen.";
+        document.getElementById("badgeTeam").textContent = "–";
+        document.getElementById("metaTeam").textContent = "Team: –";
+        document.getElementById("footerTeam").textContent = "Team: –";
+        document.getElementById("footerUser").textContent = "User: –";
+        document.getElementById("overviewUser").textContent = "–";
+        document.getElementById("overviewTeam").textContent = "–";
+        document.getElementById("resourceTbody").innerHTML = "";
+    });
+
+    /************************************************************
+     NAV / WINDOWS (wie in deinem Original)
+     ************************************************************/
+    const navButtons = document.querySelectorAll(".nav-btn");
+    const windows = {
+        overview: document.getElementById("window-overview"),
+        wirtschaft: document.getElementById("window-wirtschaft"),
+        kosten: document.getElementById("window-kosten"),
+        forschung: document.getElementById("window-forschung"),
+        politik: document.getElementById("window-politik"),
+        schiffssystem: document.getElementById("window-schiffssystem"),
+        "system-cluster": document.getElementById("window-system-cluster"),
+        planeten: document.getElementById("window-planeten"),
+        handelsmarkt: document.getElementById("window-handelsmarkt"),
+        "system-ranking": document.getElementById("window-system-ranking"),
+    };
+
+    function showWindow(key) {
+        Object.values(windows).forEach((w) => w.classList.remove("active"));
+        if (windows[key]) windows[key].classList.add("active");
+
+        navButtons.forEach((btn) => {
+            const target = btn.getAttribute("data-target");
+            btn.classList.toggle("active", target === key);
+        });
+    }
+
+    navButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const target = btn.getAttribute("data-target");
+            showWindow(target);
+        });
+    });
+
+    /************************************************************
+     RENDER: Ressourcen-Tabelle (Excel-nah)
+     ************************************************************/
+    function fmt(n) {
+        if (n === null || n === undefined || Number.isNaN(n)) return "–";
+        // schöne Darstellung für int/float
+        const isInt = Math.abs(n - Math.round(n)) < 1e-9;
+        return isInt ? String(Math.round(n)) : String(Math.round(n * 100) / 100);
+    }
+
+    function statusFrom(ak, max, income) {
+        if (max > 0 && ak / max < 0.15) return { label: "Kritisch", cls: "status-low" };
+        if (income < 0) return { label: "Sinkt", cls: "status-low" };
+        if (income === 0) return { label: "Stabil", cls: "status-good" };
+        return { label: "Aufbau", cls: "status-good" };
+    }
+
+    function renderResourcesForTeam(team) {
+        const tbody = document.getElementById("resourceTbody");
+        tbody.innerHTML = "";
+
+        const data = TEAM_EXCEL_SUMMARY[team] || {};
+        const entries = Object.entries(data);
+
+        if (!entries.length) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+          <td colspan="7" class="status-low">
+            Für <strong>${team}</strong> sind in diesem Demo noch keine Excel-Team-Summen hinterlegt.
+            (Teams Weiß/Schwarz sind aktuell Platzhalter.)
+          </td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+
+        for (const [res, arr] of entries) {
+            const [ak, max, brutto, imp, kon, verlust] = arr;
+            const prod = (brutto || 0) + (imp || 0);
+            const cons = (kon || 0) + (verlust || 0);
+            const income = prod - cons;
+
+            const st = statusFrom(ak || 0, max || 0, income);
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+          <td>${res}</td>
+          <td>${fmt(ak)}</td>
+          <td>${fmt(max)}</td>
+          <td>+${fmt(prod)}</td>
+          <td>-${fmt(cons)}</td>
+          <td>${income >= 0 ? "+" : ""}${fmt(income)}</td>
+          <td class="${st.cls}">${st.label}</td>
+        `;
+            tbody.appendChild(tr);
+        }
+    }
+
+    /************************************************************
+     APPLY SESSION → UI
+     ************************************************************/
+    function applySession() {
+        const s = getSession();
+        if (!s) return;
+
+        const team = s.team || "Grün";
+        const user = s.display || s.user || "User";
+
+        setTeamTheme(team);
+
+        document.getElementById("topSubtitle").textContent =
+            `Eingeloggt als ${user} — Zugriff: Team ${team}.`;
+
+        document.getElementById("badgeTeam").textContent = team;
+        document.getElementById("metaTeam").textContent = `Team: ${team}`;
+
+        document.getElementById("footerTeam").textContent = `Team: ${team}`;
+        document.getElementById("footerUser").textContent = `User: ${user}`;
+
+        document.getElementById("overviewUser").textContent = user;
+        document.getElementById("overviewTeam").textContent = team;
+        document.getElementById("overviewId").textContent = `ID: ${team.toUpperCase()}-01`;
+
+        // kleine “Stabilität” optisch team-basiert (nur UI-Gag)
+        const pct = team === "Schwarz" ? 64 : team === "Rot" ? 76 : team === "Gelb" ? 81 : team === "Blau" ? 88 : 92;
+        document.getElementById("overviewBar").style.width = `${pct}%`;
+        document.getElementById("badgeStatus").textContent = pct >= 85 ? "Stabil" : (pct >= 75 ? "Wachsam" : "Kritisch");
+
+        renderResourcesForTeam(team);
+    }
+
+    // Boot
+    (function init() {
+        const s = getSession();
+        if (!s) {
+            showAuth();
+            setAuthTab("login");
+        } else {
+            applySession();
+            hideAuth();
+        }
+        showWindow("overview");
+    })();
+</script>
+</body>
+</html>
